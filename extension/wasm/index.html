@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quik Preview Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #ccc;
+            font-family: sans-serif;
+        }
+        #status {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+        }
+        #qt-container {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #555;
+        }
+        #qt-container canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .error {
+            color: #f44;
+        }
+        .success {
+            color: #4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quik Wasm Test</h1>
+    <div id="status">Loading...</div>
+    <div id="qt-container"></div>
+
+    <script src="qtloader.js"></script>
+    <script src="quik-preview.js"></script>
+    <script>
+        const statusDiv = document.getElementById('status');
+        let qtModule = null;
+        
+        // 测试 XML - 带 visible 和联动的示例
+        const testXml = `<Panel>
+            <GroupBox title="用户类型选择">
+                <ComboBox var="userType" title="用户类型" default="0">
+                    <Choice text="个人用户" val="0"/>
+                    <Choice text="企业用户" val="1"/>
+                    <Choice text="VIP用户" val="2"/>
+                </ComboBox>
+                
+                <!-- 个人用户表单 -->
+                <GroupBox title="个人信息" visible="$userType==0">
+                    <LineEdit var="name" title="姓名"/>
+                    <LineEdit var="idCard" title="身份证号"/>
+                    <SpinBox var="age" title="年龄" min="0" max="120"/>
+                </GroupBox>
+                
+                <!-- 企业用户表单 -->
+                <GroupBox title="企业信息" visible="$userType==1">
+                    <LineEdit var="companyName" title="公司名称"/>
+                    <LineEdit var="taxNumber" title="税号"/>
+                    <LineEdit var="contactPerson" title="联系人"/>
+                </GroupBox>
+                
+                <!-- VIP用户表单 -->
+                <GroupBox title="VIP信息" visible="$userType==2">
+                    <LineEdit var="vipName" title="VIP姓名"/>
+                    <ComboBox var="vipLevel" title="VIP等级">
+                        <Choice text="黄金" val="gold"/>
+                        <Choice text="白金" val="platinum"/>
+                        <Choice text="钻石" val="diamond"/>
+                    </ComboBox>
+                    <CheckBox var="autoRenew" text="自动续费"/>
+                </GroupBox>
+            </GroupBox>
+            
+            <GroupBox title="其他选项">
+                <CheckBox var="enableAdvanced" text="启用高级设置"/>
+                <GroupBox title="高级设置" visible="$enableAdvanced==1">
+                    <SpinBox var="timeout" title="超时时间(秒)" min="1" max="300"/>
+                    <CheckBox var="debugMode" text="调试模式"/>
+                </GroupBox>
+            </GroupBox>
+            
+            <HLayoutWidget>
+                <PushButton text="提交" var="btnSubmit"/>
+                <PushButton text="重置" var="btnReset"/>
+            </HLayoutWidget>
+        </Panel>`;
+        
+        // 监听 Quik 事件
+        window.onQuikEvent = function(event, message) {
+            console.log('[Quik Event]', event, message);
+            const p = document.createElement('p');
+            p.textContent = 'Event: ' + event + (message ? ' - ' + message : '');
+            p.style.color = event === 'error' ? '#f44' : '#4f4';
+            statusDiv.appendChild(p);
+            
+            // 当 Qt ready 时，加载 XML
+            if (event === 'ready') {
+                setTimeout(() => loadTestXml(), 100);
+            }
+        };
+        
+        // 全局模块引用，由 QtLoader 内部设置
+        let wasmModule = null;
+        
+        function loadXml(xmlContent) {
+            if (!wasmModule || !wasmModule._loadXmlContent) {
+                console.error('Wasm module not ready');
+                return false;
+            }
+            
+            try {
+                const encoder = new TextEncoder();
+                const encoded = encoder.encode(xmlContent + '\0');
+                const stringPtr = wasmModule._malloc(encoded.length);
+                const heap = new Uint8Array(wasmModule.HEAPU8.buffer, stringPtr, encoded.length);
+                heap.set(encoded);
+                wasmModule._loadXmlContent(stringPtr);
+                wasmModule._free(stringPtr);
+                console.log('XML loaded successfully');
+                return true;
+            } catch (e) {
+                console.error('Failed to load XML:', e);
+                return false;
+            }
+        }
+        
+        function loadTestXml() {
+            if (loadXml(testXml)) {
+                statusDiv.innerHTML += '<br><span class="success">XML loaded!</span>';
+            } else {
+                statusDiv.innerHTML += '<br><span class="error">Failed to load XML</span>';
+            }
+        }
+        
+        async function init() {
+            try {
+                statusDiv.textContent = 'Initializing Qt Wasm...';
+                
+                const container = document.getElementById('qt-container');
+                
+                // 使用 QtLoader 管理容器
+                const loader = new QtLoader({
+                    containerElements: [container],
+                    moduleConfig: {
+                        onRuntimeInitialized: function() {
+                            console.log('Runtime initialized, module:', this);
+                            wasmModule = this;
+                        }
+                    },
+                    showLoader: function(status) {
+                        console.log('Loading:', status);
+                    },
+                    showCanvas: function() {
+                        console.log('Canvas ready');
+                        statusDiv.innerHTML += '<br><span class="success">Canvas displayed!</span>';
+                    },
+                    showError: function(error) {
+                        console.error('Qt Error:', error);
+                    },
+                    statusChanged: function(status) {
+                        console.log('Status:', status);
+                        if (status === 'Running') {
+                            onQtReady();
+                        }
+                    }
+                });
+                
+                loader.loadEmscriptenModule('quik-preview');
+                
+                window.qtLoader = loader;
+                
+            } catch (e) {
+                console.error('Error:', e);
+                statusDiv.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
+            }
+        }
+        
+        async function onQtReady() {
+            try {
+                // 等待一帧让 Qt 初始化完成
+                await new Promise(r => setTimeout(r, 500));
+                
+                statusDiv.innerHTML = '<span class="success">Qt Wasm loaded successfully!</span>';
+                console.log('Qt is running, UI should be visible in canvas');
+                
+                // QtLoader.module 在 Qt 6 中可能不直接暴露函数
+                // 但 main.cpp 中的 notifyJS("ready") 应该已经触发了
+                // UI 应该已经在 canvas 中显示了
+                
+            } catch (e) {
+                console.error('Error:', e);
+                statusDiv.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Wasm 构建产物存放目录
+# 构建后会包含:
+# - quik-preview.js
+# - quik-preview.wasm  
+# - qtloader.js

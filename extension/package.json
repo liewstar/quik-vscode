@@ -1,0 +1,85 @@
+{
+  "name": "quik-preview",
+  "displayName": "Quik XML Preview",
+  "description": "Real-time preview for Quik XML UI files - A declarative UI framework for Qt",
+  "version": "0.1.0",
+  "publisher": "liewstar",
+  "author": {
+    "name": "liewstar",
+    "url": "https://github.com/liewstar"
+  },
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/liewstar/Quik"
+  },
+  "bugs": {
+    "url": "https://github.com/liewstar/Quik/issues"
+  },
+  "homepage": "https://github.com/liewstar/Quik#readme",
+  "keywords": [
+    "quik",
+    "xml",
+    "preview",
+    "qt",
+    "ui",
+    "declarative",
+    "wasm"
+  ],
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:xml",
+    "onCommand:quik.preview"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "quik.preview",
+        "title": "Quik: Preview XML",
+        "category": "Quik",
+        "icon": {
+          "light": "images/icon.svg",
+          "dark": "images/icon.svg"
+        }
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceExtname == .xml",
+          "command": "quik.preview",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "quik.preview",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "resourceExtname == .xml"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.74.0",
+    "@vscode/vsce": "^2.22.0",
+    "sharp": "^0.34.5",
+    "typescript": "^5.0.0"
+  }
+}
