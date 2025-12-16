@@ -1,4 +1,18 @@
-# Quik VSCode Preview Extension
+<div align="center">
+
+# ⚡ Quik VSCode Preview
+
+**Real-time preview for Quik XML UI files in VSCode**
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![VSCode](https://img.shields.io/badge/VSCode-1.80+-007ACC?logo=visualstudiocode&logoColor=white)](https://code.visualstudio.com/) [![Qt](https://img.shields.io/badge/Qt-6.x_WebAssembly-41CD52?logo=qt&logoColor=white)](https://www.qt.io/)
+
+[🚀 安装](#安装与使用) · [🔧 构建](#构建步骤) · [📖 文档](https://liewstar.github.io/quik-docs/)
+
+[English](README_EN.md) | 中文
+
+</div>
+
+---
 
 VSCode 插件，用于实时预览 Quik XML 界面文件。
 
@@ -126,3 +140,17 @@ npx vsce package
 - 首次加载预览可能需要 3-5 秒（加载 Wasm）
 - 插件体积约 20-40MB（包含 Qt 运行时）
 - 预览效果与实际 Qt 渲染完全一致
+
+---
+
+## 📄 许可证
+
+本项目基于 MIT 许可证开源 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🔗 相关项目
+
+| 项目 | 描述 | 链接 |
+|------|------|------|
+| **Quik** | 核心框架 | [GitHub](https://github.com/liewstar/quik) |
+| **Quik Docs** | 官方文档 | [GitHub](https://github.com/liewstar/quik-docs) · [在线文档](https://liewstar.github.io/quik-docs/) |
+| **Quik VSCode** | VSCode 预览插件 | [GitHub](https://github.com/liewstar/quik-vscode) |
